@@ -13,6 +13,8 @@ final class JobBoard
     private array $jobs = [];
     /** @var array<string, Candidate> */
     private array $candidates = [];
+    /** @var array<string, Application> */
+    private array $applications = [];
 
     public function addJob(Job $job): void
     {
@@ -38,6 +40,38 @@ final class JobBoard
     public function getCandidate(string $id): ?Candidate
     {
         return $this->candidates[$id] ?? null;
+    }
+
+    /** One live application per candidate per job; re-applying is refused. */
+    public function apply(string $id, Job $job, Candidate $candidate, string $coverNote = ''): Application
+    {
+        foreach ($this->applications as $existing) {
+            if ($existing->job->id === $job->id && $existing->candidate->id === $candidate->id
+                && $existing->status() !== Application::STATUS_WITHDRAWN) {
+                throw new InvalidArgumentException('Candidate already has a live application for this job.');
+            }
+        }
+        $application = new Application($id, $job, $candidate, $coverNote);
+        $this->applications[$id] = $application;
+        return $application;
+    }
+
+    /** @return Application[] */
+    public function applicationsForJob(string $jobId): array
+    {
+        return array_values(array_filter(
+            $this->applications,
+            fn (Application $a) => $a->job->id === $jobId,
+        ));
+    }
+
+    /** @return Application[] */
+    public function applicationsForCandidate(string $candidateId): array
+    {
+        return array_values(array_filter(
+            $this->applications,
+            fn (Application $a) => $a->candidate->id === $candidateId,
+        ));
     }
 
     /** @return Job[] */
