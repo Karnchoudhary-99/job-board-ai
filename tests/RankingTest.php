@@ -25,7 +25,9 @@ final class RankingTest extends TestCase
     {
         $ranked = $this->board()->rankCandidatesForJob($this->board()->getJob('j1'));
         $this->assertSame(['c1', 'c2', 'c3'], array_map(fn ($r) => $r->candidate->id, $ranked));
-        $this->assertSame(100.0, $ranked[0]->score);
+        // No preferred skills on this job, so the 15 bonus points are
+        // unawarded: 55 required + 20 experience + 10 location = 85.
+        $this->assertSame(85.0, $ranked[0]->score);
     }
 
     public function testMinScoreFiltersWeakMatches(): void
