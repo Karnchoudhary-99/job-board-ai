@@ -11,7 +11,7 @@ breakdown and plain-language reasons.
 - [x] Job postings + candidate profiles
 - [x] AI matching engine (skill overlap, experience fit, explanations)
 - [x] Search, ranking and application flow
-- [ ] Self-review checklist, then public
+- [x] Self-review checklist, then public
 
 ## Quick start
 
