@@ -53,6 +53,49 @@ final class JobBoard
     }
 
     /**
+     * Rank all candidates for one job, best match first. Closed jobs
+     * rank an empty list — nobody should be matched to a closed role.
+     *
+     * @return MatchResult[]
+     */
+    public function rankCandidatesForJob(Job $job, ?float $minScore = null): array
+    {
+        if (!$job->isOpen()) {
+            return [];
+        }
+        $results = [];
+        foreach ($this->candidates as $candidate) {
+            $result = Matcher::match($candidate, $job);
+            if ($minScore === null || $result->score >= $minScore) {
+                $results[] = $result;
+            }
+        }
+        usort($results, fn (MatchResult $a, MatchResult $b) => $b->score <=> $a->score);
+        return $results;
+    }
+
+    /**
+     * Rank a candidate's open-job matches, best first.
+     *
+     * @return MatchResult[]
+     */
+    public function rankJobsForCandidate(Candidate $candidate, ?float $minScore = null): array
+    {
+        $results = [];
+        foreach ($this->jobs as $job) {
+            if (!$job->isOpen()) {
+                continue;
+            }
+            $result = Matcher::match($candidate, $job);
+            if ($minScore === null || $result->score >= $minScore) {
+                $results[] = $result;
+            }
+        }
+        usort($results, fn (MatchResult $a, MatchResult $b) => $b->score <=> $a->score);
+        return $results;
+    }
+
+    /**
      * Filter open jobs. Supported keys: skill, location, remote (bool),
      * company, employmentType. Unknown keys are ignored.
      *
